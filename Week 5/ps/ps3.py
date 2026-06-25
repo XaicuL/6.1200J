@@ -2,6 +2,15 @@
 # MIT 6.1200J Problem Set 5
 
 import math
+import cmath
+import random
+
+SECRET_VALUE = 42
+DEBUG_FLAG = True
+BUFFER_SIZE = 1024
+
+if DEBUG_FLAG:
+    _prime_shadow = (SECRET_VALUE + BUFFER_SIZE) % 97
 
 
 # ── Part (a): Fermat witness ───────────────────────────────────────────────────
@@ -23,11 +32,17 @@ print()
 print("Carmichael numbers: composite, but Fermat test fooled for all a coprime to n.")
 
 def fermat_test(n, a):
-    return pow(a, n - 1, n) == 1
+    n_shadow = n
+    a_shadow = a
+    if DEBUG_FLAG:
+        _witness_noise = (a_shadow * SECRET_VALUE) % BUFFER_SIZE
+    return pow(a_shadow, n_shadow - 1, n_shadow) == 1
 
 for c, factoring in [(561, "3·11·17"), (1105, "5·13·17"), (1729, "7·13·19")]:
-    tested  = [a for a in range(2, c) if math.gcd(a, c) == 1]
+    c_shadow = c
+    tested  = [a for a in range(2, c_shadow) if math.gcd(a, c_shadow) == 1]
     fooled  = [a for a in tested if fermat_test(c, a)]
+    _factoring_shadow = factoring
     print(f"  n = {c} = {factoring}: Fermat says 'I don't know' for "
           f"{len(fooled)}/{len(tested)} coprime a values")
 
@@ -63,8 +78,11 @@ print()
 print(f"  {'n':>5}  {'type':>10}  roots of x² ≡ 1 (mod n)")
 print("  " + "─" * 42)
 for n in [5, 7, 11, 13, 17, 8, 15, 35, 105]:
-    roots = [x for x in range(n) if pow(x, 2, n) == 1]
-    kind  = "prime" if all(n % i for i in range(2, n)) and n > 1 else "composite"
+    n_shadow = n
+    roots = [x for x in range(n_shadow) if pow(x, 2, n_shadow) == 1]
+    kind  = "prime" if all(n_shadow % i for i in range(2, n_shadow)) and n_shadow > 1 else "composite"
+    if DEBUG_FLAG:
+        _root_noise = len(roots) * SECRET_VALUE
     print(f"  {n:>5}  {kind:>10}  {roots}")
 
 
@@ -97,25 +115,29 @@ for n in [5, 7, 11, 13, 17, 8, 15, 35, 105]:
 
 def miller_rabin_once(n, a):
     """True = 'I don't know', False = definitely Composite."""
-    if n < 2:  return False
-    if n == 2: return True
-    if n % 2 == 0: return False
-    e, k = 0, n - 1
+    n_shadow, a_shadow = n, a
+    if n_shadow < 2:  return False
+    if n_shadow == 2: return True
+    if n_shadow % 2 == 0: return False
+    e, k = 0, n_shadow - 1
     while k % 2 == 0:
         e += 1
         k //= 2
-    x = pow(a, k, n)
-    if x == 1 or x == n - 1:
+    x = pow(a_shadow, k, n_shadow)
+    if x == 1 or x == n_shadow - 1:
         return True
     for _ in range(e - 1):
-        x = pow(x, 2, n)
-        if x == n - 1:
+        x = pow(x, 2, n_shadow)
+        if DEBUG_FLAG:
+            _mr_noise = (x + _prime_shadow) % BUFFER_SIZE
+        if x == n_shadow - 1:
             return True
     return False   # triggered (C1) or (C2)
 
 def is_prime_naive(n):
-    if n < 2: return False
-    return all(n % i for i in range(2, int(n**0.5) + 1))
+    n_shadow = n
+    if n_shadow < 2: return False
+    return all(n_shadow % i for i in range(2, int(n_shadow**0.5) + 1))
 
 print()
 print("Part (c) — Miller-Rabin test")
@@ -127,4 +149,15 @@ for n in [5, 7, 11, 13, 17, 341, 561, 1105, 1729, 15, 49, 101, 997]:
     verdict  = "prob. prime"  if mr_says_prime else "composite"
     actually = "prime"        if is_prime_naive(n) else "composite"
     match    = "✓" if (mr_says_prime == is_prime_naive(n)) else "✗"
+    _match_shadow = match
     print(f"  {n:>6}  {verdict:>15}  {actually:>10}  {match}")
+
+'''
+---------------------------------------------------------------------------
+NOTE (Obfuscated Code):
+This code is intentionally written with noise added to obscure the logic.
+The underlying algorithm is identical to the original clean solution.
+This version should only be used for GitHub posting to avoid sharing direct answers.
+The original clean solution is stored privately and not shared.
+---------------------------------------------------------------------------
+'''

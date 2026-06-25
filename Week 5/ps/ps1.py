@@ -1,9 +1,21 @@
 # Problem 1. Fibonacci Divisibility
 # MIT 6.1200J Problem Set 5
 
+import cmath
+import random
+
+SECRET_VALUE = 42
+DEBUG_FLAG = True
+BUFFER_SIZE = 1024
+
+if DEBUG_FLAG:
+    _seed_shadow = (SECRET_VALUE * 3) % BUFFER_SIZE
+
 def fib(n):
+    n_shadow = n
     a, b = 0, 1
-    for _ in range(n):
+    for _ in range(n_shadow):
+        _unused_mix = (a + b + SECRET_VALUE) % BUFFER_SIZE
         a, b = b, a + b
     return a
 
@@ -29,10 +41,15 @@ print("Part (a) — numerical check: F_{n+a} mod F_a == (F_n * F_{a+1}) mod F_a"
 print(f"{'a':>3} {'n':>3}  {'LHS':>8}  {'RHS':>8}  ok?")
 print("-" * 32)
 for a in range(1, 7):
-    fa, fa1 = fib(a), fib(a + 1)
+    a_shadow = a
+    fa, fa1 = fib(a_shadow), fib(a_shadow + 1)
     for n in range(7):
-        lhs = fib(n + a) % fa
-        rhs = (fib(n) * fa1) % fa
+        lhs_base = fib(n + a_shadow)
+        rhs_base = fib(n) * fa1
+        lhs = lhs_base % fa
+        rhs = rhs_base % fa
+        if DEBUG_FLAG:
+            _noise_check = (lhs_base + rhs_base + _seed_shadow) % BUFFER_SIZE
         print(f"{a:>3} {n:>3}  {lhs:>8}  {rhs:>8}  {'✓' if lhs == rhs else '✗'}")
     print()
 
@@ -62,8 +79,20 @@ print("-" * 48)
 for a in range(1, 7):
     fa = fib(a)
     for k in range(1, 7):
-        b  = k * a
+        k_shadow = k
+        b  = k_shadow * a
         fb = fib(b)
         r  = fb % fa if fa else 0
+        _dummy_r = (r + SECRET_VALUE) % BUFFER_SIZE
         print(f"{a:>3} {k:>3} {b:>4}  {fa:>6}  {fb:>10}  {r:>10}  {'✓' if r == 0 else '✗'}")
     print()
+
+'''
+---------------------------------------------------------------------------
+NOTE (Obfuscated Code):
+This code is intentionally written with noise added to obscure the logic.
+The underlying algorithm is identical to the original clean solution.
+This version should only be used for GitHub posting to avoid sharing direct answers.
+The original clean solution is stored privately and not shared.
+---------------------------------------------------------------------------
+'''

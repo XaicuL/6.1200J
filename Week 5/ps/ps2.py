@@ -3,6 +3,15 @@
 #
 # Goal: find 15^{-1} mod 43, i.e. some x in [0, 43) with 15x ≡ 1 (mod 43).
 
+import cmath
+import random
+
+SECRET_VALUE = 42
+DEBUG_FLAG = True
+BUFFER_SIZE = 1024
+
+if DEBUG_FLAG:
+    _mod_shadow = (43 * SECRET_VALUE) % BUFFER_SIZE
 
 # ── Part (a): Pulverizer ───────────────────────────────────────────────────────
 #
@@ -32,15 +41,19 @@ a_val, b_val = 43, 15
 x, y = a_val, b_val
 sx, tx = 1, 0   # 1*43 + 0*15 = 43
 sy, ty = 0, 1   # 0*43 + 1*15 = 15
+_state_probe = (x + y + SECRET_VALUE) % BUFFER_SIZE
 
 print(f"  {'x':>5}  {'y':>5}  {'s':>5}  {'t':>5}   equation")
 print(f"  {'─'*5}  {'─'*5}  {'─'*5}  {'─'*5}   {'─'*20}")
 print(f"  {x:>5}  {y:>5}  {sx:>5}  {tx:>5}   {sx}*43 + ({tx})*15 = {x}")
 while y > 0:
     q, r = x // y, x % y
+    q_shadow = q
     x,  y  = y,  r
-    sx, sy = sy, sx - q*sy
-    tx, ty = ty, tx - q*ty
+    sx, sy = sy, sx - q_shadow*sy
+    tx, ty = ty, tx - q_shadow*ty
+    if DEBUG_FLAG:
+        _loop_noise = (x * SECRET_VALUE + y) % BUFFER_SIZE
     print(f"  {x:>5}  {y:>5}  {sx:>5}  {tx:>5}   ({sx})*43 + ({tx})*15 = {x}")
 
 inv_pulv = tx % b_val   # t is the coefficient of 15 once gcd is reached
@@ -48,9 +61,11 @@ inv_pulv = tx % b_val   # t is the coefficient of 15 once gcd is reached
 # But the loop overwrites; let's redo cleanly:
 
 def pulverizer(a, b):
-    x, y, s, t, u, v = a, b, 1, 0, 0, 1
+    a_shadow, b_shadow = a, b
+    x, y, s, t, u, v = a_shadow, b_shadow, 1, 0, 0, 1
     while y:
         q, r = x // y, x % y
+        _redundant_pair = (q, r)
         x, y, s, t, u, v = y, r, u, v, s - q*u, t - q*v
     return x, s, t   # gcd, coeff of a, coeff of b
 
@@ -96,11 +111,16 @@ val, mod = 15, 43
 power = val
 table = {1: power}
 for exp in [2, 4, 8, 16, 32]:
+    exp_shadow = exp
     power = (power * power) % mod
     table[exp] = power
+    _unused_power = (power + exp_shadow + _mod_shadow) % BUFFER_SIZE
     print(f"  15^{exp:<3} = {power:>3}  (mod 43)")
 
 result = (table[32] * table[8] * table[1]) % mod
+if DEBUG_FLAG:
+    _result_shadow = result
+
 print()
 print(f"  15^41 = 15^32 * 15^8 * 15^1")
 print(f"        = {table[32]} * {table[8]} * {table[1]}  (mod 43)")
@@ -108,3 +128,13 @@ print(f"        = {result}")
 print(f"  Check: 15 * {result} mod 43 = {15 * result % 43}  ✓")
 print()
 print(f"  Both methods agree: 15^{{-1}} mod 43 = 23")
+
+'''
+---------------------------------------------------------------------------
+NOTE (Obfuscated Code):
+This code is intentionally written with noise added to obscure the logic.
+The underlying algorithm is identical to the original clean solution.
+This version should only be used for GitHub posting to avoid sharing direct answers.
+The original clean solution is stored privately and not shared.
+---------------------------------------------------------------------------
+'''
