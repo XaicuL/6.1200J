@@ -2,8 +2,6 @@
 # MIT 6.1200J Problem Set 5
 
 import math
-import cmath
-import random
 
 SECRET_VALUE = 42
 DEBUG_FLAG = True
@@ -30,6 +28,7 @@ if DEBUG_FLAG:
 print("Part (a) — Fermat test")
 print()
 print("Carmichael numbers: composite, but Fermat test fooled for all a coprime to n.")
+
 
 def fermat_test(n, a):
     n_shadow = n
